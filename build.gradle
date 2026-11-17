@@ -1,0 +1,111 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.6'
+    id 'io.spring.dependency-management' version '1.1.5'
+    id 'jacoco'
+}
+
+group = 'com.heima'
+version = '0.0.1-SNAPSHOT'
+description = 'AICR - AI 智能研发助手'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // Validation API
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    
+    // SpringDoc OpenAPI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    
+    // LangChain4j - AI框架
+    implementation 'dev.langchain4j:langchain4j:1.0.0-beta3'
+    implementation 'dev.langchain4j:langchain4j-spring-boot-starter:1.0.0-beta3'
+    implementation 'dev.langchain4j:langchain4j-embeddings:1.0.0-beta3'
+    implementation 'dev.langchain4j:langchain4j-pinecone:1.0.0-beta3'
+    implementation 'dev.langchain4j:langchain4j-reactor:1.0.0-beta3'
+    implementation 'dev.langchain4j:langchain4j-open-ai:1.0.0-beta3'
+    
+    // MyBatis-Plus
+    implementation 'com.baomidou:mybatis-plus-spring-boot3-starter:3.5.5'
+    
+    // Database
+    runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
+    
+    // Apache Tika - 文档解析
+    implementation 'org.apache.tika:tika-core:2.9.1'
+    implementation 'org.apache.tika:tika-parsers-standard-package:2.9.1'
+    
+    // JSON处理
+    implementation 'com.alibaba.fastjson2:fastjson2:2.0.47'
+    
+    // 工具类
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+    implementation 'commons-io:commons-io:2.15.1'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // 测试相关
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// JaCoCo 配置
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/config/**',
+                '**/entity/**',
+                '**/bean/**',
+                '**/AicrApplication.class'
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.75  // 分支覆盖率75%
+            }
+        }
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.80  // 行覆盖率80%
+            }
+        }
+    }
+}

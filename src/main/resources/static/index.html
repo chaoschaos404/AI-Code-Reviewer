@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AICR - AI智能研发助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .nav-tab {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+        }
+        .content-area {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            min-height: 500px;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        .btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result-area {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        .result-area.show {
+            display: block;
+        }
+        .result-area h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .result-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .result-content pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .loading.show {
+            display: block;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: #e74c3c;
+            background: #fdf2f2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+        .chat-container {
+            height: 400px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow-y: auto;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+        }
+        .chat-message {
+            margin-bottom: 15px;
+            max-width: 80%;
+        }
+        .chat-message.user {
+            margin-left: auto;
+            text-align: right;
+        }
+        .chat-message.assistant {
+            margin-right: auto;
+        }
+        .chat-bubble {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        .chat-message.user .chat-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .chat-message.assistant .chat-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+        .file-upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        .issue-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+        .issue-card.critical {
+            border-left-color: #e74c3c;
+            background: #fdf2f2;
+        }
+        .issue-card.warning {
+            border-left-color: #f39c12;
+            background: #fff9e6;
+        }
+        .issue-card.info {
+            border-left-color: #3498db;
+            background: #ebf5fb;
+        }
+        .issue-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .score-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .score-high {
+            background: #d4edda;
+            color: #155724;
+        }
+        .score-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .score-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AICR</h1>
+            <p>AI 智能研发助手 - 代码审查 · 单元测试生成 · 智能问答</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('codereview')">代码审查</button>
+            <button class="nav-tab" onclick="showSection('unittest')">生成单元测试</button>
+            <button class="nav-tab" onclick="showSection('chat')">智能问答</button>
+            <button class="nav-tab" onclick="showSection('document')">文档管理</button>
+        </div>
+
+        <div class="content-area">
+            <!-- 代码审查 -->
+            <div id="codereview" class="section active">
+                <h2>AI 代码审查</h2>
+                <div class="form-group">
+                    <label>项目名称</label>
+                    <input type="text" id="reviewProject" placeholder="例如：my-project" value="test-project">
+                </div>
+                <div class="form-group">
+                    <label>文件路径</label>
+                    <input type="text" id="reviewFilePath" placeholder="例如：src/main/java/UserService.java" value="Test.java">
+                </div>
+                <div class="form-group">
+                    <label>编程语言</label>
+                    <select id="reviewLanguage">
+                        <option value="java">Java</option>
+                        <option value="kotlin">Kotlin</option>
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="go">Go</option>
+                        <option value="cpp">C++</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>代码内容</label>
+                    <textarea id="reviewCode" placeholder="粘贴需要审查的代码...">public class Test {
+    public void test() {
+        String s = null;
+        System.out.println(s.length());
+    }
+    
+    public int divide(int a, int b) {
+        return a / b;  // 可能除零
+    }
+}</textarea>
+                </div>
+                <button class="btn" onclick="doCodeReview()">开始审查</button>
+                
+                <div class="loading" id="reviewLoading">
+                    <div class="spinner"></div>
+                    <p>AI 正在分析代码，请稍候...</p>
+                </div>
+                
+                <div class="error-message" id="reviewError"></div>
+                
+                <div class="result-area" id="reviewResult">
+                    <h3>审查结果</h3>
+                    <div id="reviewScore"></div>
+                    <div id="reviewSummary"></div>
+                    <div id="reviewIssues"></div>
+                </div>
+            </div>
+
+            <!-- 生成单元测试 -->
+            <div id="unittest" class="section">
+                <h2>生成单元测试</h2>
+                <div class="form-group">
+                    <label>类名（完整路径）</label>
+                    <input type="text" id="testClassName" placeholder="例如：com.example.UserService" value="com.example.Calculator">
+                </div>
+                <div class="form-group">
+                    <label>源代码</label>
+                    <textarea id="testSourceCode" placeholder="粘贴类的源代码...">public class Calculator {
+    public int add(int a, int b) {
+        return a + b;
+    }
+    
+    public int divide(int a, int b) {
+        if (b == 0) {
+            throw new IllegalArgumentException("除数不能为零");
+        }
+        return a / b;
+    }
+}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>测试框架</label>
+                    <select id="testFramework">
+                        <option value="junit5">JUnit 5</option>
+                        <option value="junit4">JUnit 4</option>
+                        <option value="testng">TestNG</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="generateMock" checked> 生成 Mock 代码
+                    </label>
+                </div>
+                <button class="btn" onclick="generateUnitTest()">生成测试代码</button>
+                
+                <div class="loading" id="testLoading">
+                    <div class="spinner"></div>
+                    <p>AI 正在生成测试代码，请稍候...</p>
+                </div>
+                
+                <div class="error-message" id="testError"></div>
+                
+                <div class="result-area" id="testResult">
+                    <h3>生成的测试代码</h3>
+                    <div class="result-content">
+                        <pre id="testCode"></pre>
+                    </div>
+                    <div id="testInfo"></div>
+                </div>
+            </div>
+
+            <!-- 智能问答 -->
+            <div id="chat" class="section">
+                <h2>智能问答</h2>
+                <div class="form-group">
+                    <button class="btn" onclick="createChatSession()" id="createSessionBtn">创建新会话</button>
+                    <span id="sessionStatus" style="margin-left: 15px; color: #666;"></span>
+                </div>
+                <div class="chat-container" id="chatContainer">
+                    <div style="text-align: center; color: #999; padding: 50px;">
+                        请先创建会话，然后开始提问
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="输入问题..." disabled>
+                    <button class="btn" onclick="sendMessage()" id="sendBtn" disabled>发送</button>
+                </div>
+            </div>
+
+            <!-- 文档管理 -->
+            <div id="document" class="section">
+                <h2>文档管理</h2>
+                <div class="form-group">
+                    <label>用户ID</label>
+                    <input type="number" id="docUserId" value="1">
+                </div>
+                <div class="file-upload-area" onclick="document.getElementById('fileInput').click()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">📄</div>
+                    <p>点击或拖拽文件到此处上传</p>
+                    <p style="color: #999; font-size: 12px; margin-top: 10px;">支持 PDF、Word、TXT、Markdown</p>
+                    <input type="file" id="fileInput" style="display: none" onchange="handleFileSelect(event)" accept=".pdf,.doc,.docx,.txt,.md">
+                </div>
+                
+                <div class="loading" id="uploadLoading">
+                    <div class="spinner"></div>
+                    <p>正在上传和处理文档...</p>
+                </div>
+                
+                <div class="error-message" id="uploadError"></div>
+                
+                <div class="result-area" id="uploadResult">
+                    <h3>上传结果</h3>
+                    <div id="uploadInfo"></div>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
+                
+                <h3>文档列表</h3>
+                <button class="btn" onclick="loadDocumentList()" style="margin-bottom: 15px;">刷新列表</button>
+                <div id="documentList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let currentSessionId = null;
+
+        // 切换页面
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 代码审查
+        async function doCodeReview() {
+            const projectName = document.getElementById('reviewProject').value;
+            const filePath = document.getElementById('reviewFilePath').value;
+            const language = document.getElementById('reviewLanguage').value;
+            const codeContent = document.getElementById('reviewCode').value;
+
+            if (!codeContent.trim()) {
+                alert('请输入代码内容');
+                return;
+            }
+
+            showLoading('reviewLoading', true);
+            hideError('reviewError');
+            hideResult('reviewResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/codereview/review`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ projectName, filePath, language, codeContent })
+                });
+
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    displayReviewResult(result.data);
+                } else if (result.code === undefined) {
+                    showError('reviewError', '服务器返回格式错误');
+                } else {
+                    showError('reviewError', result.message || '审查失败');
+                }
+            } catch (error) {
+                showError('reviewError', '请求失败：' + error.message);
+            } finally {
+                showLoading('reviewLoading', false);
+            }
+        }
+
+        function displayReviewResult(data) {
+            const scoreDiv = document.getElementById('reviewScore');
+            const scoreClass = data.overallScore >= 80 ? 'score-high' : 
+                              data.overallScore >= 60 ? 'score-medium' : 'score-low';
+            scoreDiv.innerHTML = `<span class="score-badge ${scoreClass}">综合评分：${data.overallScore}分</span>`;
+
+            document.getElementById('reviewSummary').innerHTML = `
+                <h4 style="margin: 15px 0 10px;">总结</h4>
+                <p>${data.summary}</p>
+                <p style="margin-top: 10px;">
+                    <span style="color: #e74c3c;">Critical: ${data.criticalCount}</span> | 
+                    <span style="color: #f39c12;">Warning: ${data.warningCount}</span> | 
+                    <span style="color: #3498db;">Info: ${data.infoCount}</span>
+                </p>
+            `;
+
+            const issuesDiv = document.getElementById('reviewIssues');
+            if (data.issues && data.issues.length > 0) {
+                issuesDiv.innerHTML = '<h4 style="margin: 20px 0 10px;">发现的问题</h4>' +
+                    data.issues.map(issue => `
+                        <div class="issue-card ${issue.severity.toLowerCase()}">
+                            <div class="issue-title">[${issue.severity}] ${issue.category} - ${issue.title}</div>
+                            <div style="color: #666; margin: 5px 0;">${issue.description}</div>
+                            <div style="color: #667eea;"><strong>建议：</strong>${issue.suggestion}</div>
+                        </div>
+                    `).join('');
+            } else {
+                issuesDiv.innerHTML = '<p style="color: #27ae60;">未发现问题，代码质量良好！</p>';
+            }
+
+            showResult('reviewResult');
+        }
+
+        // 生成单元测试
+        async function generateUnitTest() {
+            const className = document.getElementById('testClassName').value;
+            const sourceCode = document.getElementById('testSourceCode').value;
+            const testFramework = document.getElementById('testFramework').value;
+            const generateMock = document.getElementById('generateMock').checked;
+
+            if (!sourceCode.trim()) {
+                alert('请输入源代码');
+                return;
+            }
+
+            showLoading('testLoading', true);
+            hideError('testError');
+            hideResult('testResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/codereview/generate-test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ className, sourceCode, testFramework, generateMock })
+                });
+
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    document.getElementById('testCode').textContent = result.data.testCode;
+                    document.getElementById('testInfo').innerHTML = 
+                        '<p style="margin-top: 15px;">' +
+                            '<strong>测试类名：</strong>' + result.data.testClassName + '<br>' +
+                            '<strong>测试方法数：</strong>' + result.data.testMethodCount + '<br>' +
+                            '<strong>预估覆盖率：</strong>' + result.data.estimatedCoverage + '%' +
+                        '</p>';
+                    showResult('testResult');
+                } else {
+                    showError('testError', result.message || '生成失败');
+                }
+            } catch (error) {
+                showError('testError', '请求失败：' + error.message);
+            } finally {
+                showLoading('testLoading', false);
+            }
+        }
+
+        // 创建会话
+        async function createChatSession() {
+            const userId = 1;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/chat/session/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `userId=${userId}&title=新会话`
+                });
+
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    currentSessionId = result.data;
+                    document.getElementById('sessionStatus').textContent = '会话已创建：' + currentSessionId;
+                    document.getElementById('chatInput').disabled = false;
+                    document.getElementById('sendBtn').disabled = false;
+                    document.getElementById('chatContainer').innerHTML = '';
+                    addMessage('assistant', '会话已创建，请开始提问！');
+                } else {
+                    alert('创建会话失败：' + result.message);
+                }
+            } catch (error) {
+                alert('创建会话失败：' + error.message);
+            }
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const question = input.value.trim();
+            
+            if (!question || !currentSessionId) return;
+
+            addMessage('user', question);
+            input.value = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/chat/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessionId: currentSessionId,
+                        userId: 1,
+                        question: question,
+                        stream: false
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.code === 200 && result.data) {
+                    addMessage('assistant', result.data.answer || result.data);
+                } else {
+                    addMessage('assistant', '抱歉，请求失败：' + result.message);
+                }
+            } catch (error) {
+                addMessage('assistant', '抱歉，请求失败：' + error.message);
+            }
+        }
+
+        function addMessage(role, content) {
+            const container = document.getElementById('chatContainer');
+            const div = document.createElement('div');
+            div.className = `chat-message ${role}`;
+            div.innerHTML = `<div class="chat-bubble">${escapeHtml(content)}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 文件上传
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        }
+
+        async function uploadFile(file) {
+            const userId = document.getElementById('docUserId').value;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('userId', userId);
+
+            showLoading('uploadLoading', true);
+            hideError('uploadError');
+            hideResult('uploadResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/document/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    document.getElementById('uploadInfo').innerHTML = `
+                        <p style="color: #27ae60;">✓ ${result.message}</p>
+                        <p>文档ID：${result.data}</p>
+                    `;
+                    showResult('uploadResult');
+                    loadDocumentList();
+                } else {
+                    showError('uploadError', result.message || '上传失败');
+                }
+            } catch (error) {
+                showError('uploadError', '上传失败：' + error.message);
+            } finally {
+                showLoading('uploadLoading', false);
+            }
+        }
+
+        // 加载文档列表
+        async function loadDocumentList() {
+            try {
+                const response = await fetch(`${API_BASE}/api/document/list`);
+                const result = await response.json();
+                
+                const listDiv = document.getElementById('documentList');
+                if (result.code === 200 && result.data && result.data.length > 0) {
+                    listDiv.innerHTML = result.data.map(function(doc) {
+                        return '<div style="padding: 15px; border-bottom: 1px solid #e0e0e0;">' +
+                            '<strong>' + (doc.fileName || '未知') + '</strong>' +
+                            '<span style="color: #999; margin-left: 10px;">' + (doc.fileType || '') + '</span>' +
+                            '<span style="color: #999; margin-left: 10px;">' + formatSize(doc.fileSize) + '</span>' +
+                            '<span style="color: #999; margin-left: 10px;">' + (doc.status || '') + '</span>' +
+                        '</div>';
+                    }).join('');
+                } else {
+                    listDiv.innerHTML = '<p style="color: #999; text-align: center;">暂无文档</p>';
+                }
+            } catch (error) {
+                document.getElementById('documentList').innerHTML = 
+                    '<p style="color: #e74c3c;">加载失败：' + error.message + '</p>';
+            }
+        }
+
+        // 工具函数
+        function showLoading(id, show) {
+            document.getElementById(id).classList.toggle('show', show);
+        }
+
+        function showError(id, message) {
+            const el = document.getElementById(id);
+            el.textContent = message;
+            el.classList.add('show');
+        }
+
+        function hideError(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function showResult(id) {
+            document.getElementById(id).classList.add('show');
+        }
+
+        function hideResult(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // 回车发送消息
+        document.getElementById('chatInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 页面加载时获取文档列表
+        window.onload = function() {
+            loadDocumentList();
+        };
+    </script>
+</body>
+</html>

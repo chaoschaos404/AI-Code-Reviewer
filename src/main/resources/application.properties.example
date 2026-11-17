@@ -1,0 +1,33 @@
+# AICR 配置模板
+# 使用方法：复制本文件为 application.properties 并填入你自己的值。
+# application.properties 已被 .gitignore 排除，切勿把真实密钥提交到仓库。
+
+# ---- 服务 ----
+server.port=8080
+spring.application.name=AICR
+
+# ---- 数据源 ----
+spring.datasource.url=jdbc:mysql://localhost:3306/aicr?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# ---- Redis ----
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+spring.data.redis.password=YOUR_REDIS_PASSWORD
+
+# ---- 通义千问 / 阿里云百炼 ----
+# 建议通过环境变量注入，不要写死在文件里：
+#   export DASHSCOPE_API_KEY=sk-xxxxxxxx
+langchain4j.open-ai.chat-model.api-key=${DASHSCOPE_API_KEY:YOUR_DASHSCOPE_API_KEY}
+langchain4j.open-ai.embedding-model.api-key=${DASHSCOPE_API_KEY:YOUR_DASHSCOPE_API_KEY}
+
+# ---- Pinecone 向量库 ----
+pinecone.api-key=${PINECONE_API_KEY:YOUR_PINECONE_API_KEY}
+pinecone.environment=YOUR_PINECONE_ENVIRONMENT
+pinecone.index-name=YOUR_PINECONE_INDEX
+
+# ---- 文件上传 ----
+spring.servlet.multipart.max-file-size=20MB
+spring.servlet.multipart.max-request-size=20MB
