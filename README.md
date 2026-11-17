@@ -332,15 +332,6 @@ jacocoTestCoverageVerification {
 4. 推送分支：`git push origin feature/xxx`
 5. 创建 Pull Request
 
-## 许可证
-
-MIT License
-
-## 联系方式
-
-如有问题，欢迎联系：
-- 邮箱：your.email@example.com
-- 微信：your_wechat
 
 ---
 
